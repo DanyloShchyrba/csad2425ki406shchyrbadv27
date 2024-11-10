@@ -47,7 +47,7 @@ jobs:
       - name: Compile Arduino Sketch for NodeMCU v3 wifi
         run: |
           mkdir -p build  # Ensure the build directory exists
-          arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build ESP8266_CH340_HW/ESP8266_CH340_HW.ino
+          arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build ESP8266_CH340/ESP8266_CH340.ino
           
       # Collect binaries as artifacts
       - name: Upload binaries reports
