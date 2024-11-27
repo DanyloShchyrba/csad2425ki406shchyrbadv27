@@ -48,7 +48,7 @@ jobs:
       - name: Compile Arduino Sketch (simulated)
         run: |
           mkdir -p build  # Ensure the build directory exists
-          arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build TicTacToeHW/INOTicTacToeHW.ino
+          arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build TicTacToeHW/TicTacToeHW.ino
 
       # Generate client executable from Python script
       - name: Generate executable
