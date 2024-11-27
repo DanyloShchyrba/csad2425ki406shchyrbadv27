@@ -5,7 +5,7 @@ param (
 )
 
 $board = "esp8266:esp8266:nodemcuv2"
-$sketch = "TicTacToeHW/INOTicTacToeHW.ino"
+$sketch = "TicTacToeHW/TicTacToeHW.ino"
 $serialLog = "serial_output.log"
 $pythonScript = "Game.py"
 $exeFilePath = "Game.exe"
