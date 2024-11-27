@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from GUI import UARTCommunication, send_move, set_mode, reset_game
+from Game import UARTCommunication, send_move, set_mode, reset_game
 import logging
 
 logging.basicConfig(filename="test_results.log", level=logging.INFO, format="%(asctime)s - %(message)s")
