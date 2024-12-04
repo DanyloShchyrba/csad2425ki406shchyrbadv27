@@ -1,4 +1,4 @@
-name: CI Build/Test
+name: Python CI/CD Workflow
 
 on:
   push:
@@ -9,63 +9,40 @@ on:
       - develop
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: windows-latest  
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3  
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: 3.9  
 
-      # Set up Arduino CLI
-      - name: Set up Arduino
+      - name: Install dependencies
         run: |
-          wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
-          tar -xvf arduino-cli_latest_Linux_64bit.tar.gz
-          sudo mv arduino-cli /usr/local/bin/
-          arduino-cli config init
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Встановлює залежності з requirements.txt
+          pip install coverage pytest      # Встановлює coverage та pytest (якщо вони не вказані в requirements.txt)
 
-      - name: Add Arduino AVR Boards package
+      - name: Run software tests
         run: |
-          arduino-cli core update-index
-          arduino-cli core install arduino:avr
+          python -m coverage run -m pytest --junitxml=test-reports/results.xml Tests_sw.py
+          python -m coverage report Tests_sw.py
+          python -m coverage html -d coverage_html_report_Tests_sw
 
-      # Install and configure Doxygen
-      - name: Install Doxygen
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y doxygen
-          
-      # Generate Doxygen Documentation
-      - name: Generate Doxygen Documentation
-        run: |
-          doxygen -g # Generates a default Doxyfile if none exists
-          sed -i 's|OUTPUT_DIRECTORY.*|OUTPUT_DIRECTORY = ./docs|' Doxyfile
-          sed -i 's|INPUT.*|INPUT = ./|' Doxyfile
-          sed -i 's|RECURSIVE.*|RECURSIVE = YES|' Doxyfile
-          doxygen Doxyfile
-
-      # Upload documentation as artifact
-      - name: Upload documentation as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docs_html
-          path: docs/html
-
-      # Collect binaries as artifacts
-      - name: Upload binaries reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: compiled-files
-          path: build/*.hex
-
-      # Collect test results as artifacts
-      - name: Upload test reports
+      - name: Upload test results
+        if: always()  # Цей крок виконується навіть при провалі тестів
         uses: actions/upload-artifact@v3
         with:
           name: test-reports
-          path: test-reports/results.xml
+          path: test-reports/results.xml  # Завантажує результати тестів у артефакти
+
+      - name: Upload coverage report
+        if: always()  # Цей крок виконується навіть при провалі тестів
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage_html_report_sw_tests  # Завантажує звіт про покриття у артефакти
