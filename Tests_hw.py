@@ -4,15 +4,13 @@ import unittest
 import serial
 import json
 import time
-import logging
+import argparse
+import sys
 
-# Logging setup
-logging.basicConfig(filename="test_results.log", level=logging.DEBUG, format="%(asctime)s - %(message)s")
-
-class TicTacToeArduinoTests(unittest.TestCase):
+class TestTicTacToe(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ser = serial.Serial(cls.SERIAL_PORT, cls.BAUD_RATE, timeout=1)
+        cls.ser = serial.Serial(cls.port, cls.baudrate, timeout=1)
         time.sleep(2)  # Allow time for the Arduino to reset
 
     @classmethod
@@ -49,7 +47,7 @@ class TicTacToeArduinoTests(unittest.TestCase):
         for row in board_state:
             for cell in row:
                 self.assertEqual(cell, " ")
-        logging.info("test_initialize_board passed.")
+
 
     def test_make_invalid_move(self):
         self.send_game_command({"command": "RESET"})
@@ -66,7 +64,6 @@ class TicTacToeArduinoTests(unittest.TestCase):
             self.assertEqual(response["message"], "Invalid move.")
         else:
             self.assertEqual(response["type"], "board")
-        logging.info("test_make_invalid_move passed.")
 
     def test_game_mode_switch(self):
         self.send_game_command({"command": "MODE", "mode": 1})
@@ -107,7 +104,7 @@ class TicTacToeArduinoTests(unittest.TestCase):
                             self.assertEqual(cell, " ")
                 if all(responses.values()):
                     break
-        logging.info("test_game_mode_switch passed.")
+
 
     def test_handle_ai_vs_ai(self):
         self.send_game_command({"command": "MODE", "mode": 2})
@@ -119,23 +116,33 @@ class TicTacToeArduinoTests(unittest.TestCase):
             if response and response["type"] == "win_status":
                 self.assertIn(response["message"], ["Player X wins!", "Player O wins!", "It's a draw!"])
                 break
-        logging.info("test_handle_ai_vs_ai passed.")
 
 
-if __name__ == '__main__':
-    import argparse
-    import sys
-
-    # Command-line argument parsing
-    parser = argparse.ArgumentParser(description="Run TicTacToe Arduino tests.")
-    parser.add_argument('serial_port', type=str, help='Serial port for Arduino connection (e.g., COM6)')
-    parser.add_argument('baud_rate', type=int, help='Baud rate for Arduino connection (e.g., 9600)')
+def parse_arguments():
+    """Parse command-line arguments for port and baudrate"""
+    parser = argparse.ArgumentParser(description="Unit tests for the Arduino-based Rock-Paper-Scissors game.")
+    parser.add_argument('--port', type=str, help="The serial port to connect to (e.g., COM6 or /dev/ttyUSB0).")
+    parser.add_argument('--baudrate', type=int, help="The baud rate for serial communication (e.g., 9600).")
     args = parser.parse_args()
 
-    # Set parameters for the test class
-    TicTacToeArduinoTests.SERIAL_PORT = args.serial_port
-    TicTacToeArduinoTests.BAUD_RATE = args.baud_rate
+    # If no port and baudrate are provided, skip the tests
+    if not args.port or not args.baudrate:
+        print("Port and baudrate are required to run the tests. Skipping tests.")
+        sys.exit(0)
+
+    return args
+
+def main():
+    """Main function to initialize parameters and run tests"""
+    # Parse the command-line arguments
+    args = parse_arguments()
+
+    # Set the port and baudrate for the tests
+    TestTicTacToe.port = args.port
+    TestTicTacToe.baudrate = args.baudrate
 
     # Run the tests
-    sys.argv = sys.argv[:1]  # Clear additional args for unittest
-    unittest.main(argv=sys.argv)
+    unittest.main(argv=sys.argv[:1])  # Run tests without passing the command-line args to unittest
+
+if __name__ == "__main__":
+    main()
